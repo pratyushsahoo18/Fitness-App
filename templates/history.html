@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block title %}Workout History – FitPlanner{% endblock %}
+{% block description %}View your complete workout plan history and completion records.{% endblock %}
+
+{% block content %}
+<div class="page-container">
+
+  <div class="page-header">
+    <h1>📊 Workout History</h1>
+    <p>A record of every plan generated for you, with your completion progress.</p>
+  </div>
+
+  {% if not logs %}
+    <div class="empty-state">
+      <div class="empty-icon">📭</div>
+      <h3>No history yet</h3>
+      <p>Your workout logs will appear here once you start tracking on the dashboard.</p>
+      <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">Go to Dashboard →</a>
+    </div>
+  {% else %}
+
+  <!-- ── Summary Stats ─────────────────────────────── -->
+  {% set total_logs = logs|length %}
+  {% set full_completions = logs|selectattr('completion_pct', 'equalto', 100)|list|length %}
+  {% set avg_pct = ((logs|sum(attribute='completion_pct')) / total_logs)|int if total_logs else 0 %}
+
+  <div class="stats-row" style="margin-bottom:2rem;">
+    <div class="stat-card">
+      <div class="stat-icon">📋</div>
+      <div class="stat-info">
+        <span class="stat-value">{{ total_logs }}</span>
+        <span class="stat-label">Total Sessions</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-info">
+        <span class="stat-value">{{ full_completions }}</span>
+        <span class="stat-label">Full Completions</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📈</div>
+      <div class="stat-info">
+        <span class="stat-value">{{ avg_pct }}%</span>
+        <span class="stat-label">Avg. Completion</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🔥</div>
+      <div class="stat-info">
+        <span class="stat-value">
+          {% set streak = namespace(count=0, broken=false) %}
+          {% for log in logs %}
+            {% if not streak.broken and log.completion_pct == 100 %}
+              {% set streak.count = streak.count + 1 %}
+            {% else %}
+              {% set streak.broken = true %}
+            {% endif %}
+          {% endfor %}
+          {{ streak.count }}
+        </span>
+        <span class="stat-label">Current Streak</span>
+      </div>
+    </div>
+  </div>
+
+    <!-- ── History Table ──────────────────────────── -->
+    <div class="history-table-wrapper">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Day</th>
+            <th>Date &amp; Time</th>
+            <th>Completion</th>
+            <th>Status</th>
+            <th>Plan</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+          <tr>
+            <td class="text-muted">{{ loop.index }}</td>
+            <td><strong>{{ log.day_name }}</strong></td>
+            <td class="text-muted">{{ log.sent_at.strftime('%d %b %Y, %H:%M') }}</td>
+
+            <!-- Completion progress bar -->
+            <td>
+              <div class="hist-progress-wrap">
+                <div class="hist-progress-track">
+                  <div class="hist-progress-fill"
+                       style="width:{{ log.completion_pct }}%;
+                              background:{% if log.completion_pct == 100 %}var(--green){% elif log.completion_pct > 0 %}var(--purple){% else %}var(--text-muted){% endif %}">
+                  </div>
+                </div>
+                <span class="hist-pct">{{ log.completion_pct }}%</span>
+              </div>
+            </td>
+
+            <!-- Status badge -->
+            <td>
+              {% if log.completion_pct == 100 %}
+                <span class="badge badge-green">🏆 Complete</span>
+              {% elif log.completion_pct > 0 %}
+                <span class="badge badge-yellow">🔄 Partial</span>
+              {% elif log.email_sent %}
+                <span class="badge badge-cyan">📧 Emailed</span>
+              {% else %}
+                <span class="badge badge-gray">— Started</span>
+              {% endif %}
+            </td>
+
+            <!-- View plan toggle -->
+            <td>
+              <button class="btn btn-ghost btn-sm"
+                      onclick="togglePlan({{ loop.index }})">
+                View
+              </button>
+            </td>
+          </tr>
+
+          <!-- Expandable: plan text + exercise checklist -->
+          <tr class="plan-detail-row" id="plan-{{ loop.index }}" style="display:none;">
+            <td colspan="6">
+
+              <!-- Exercise completion checklist (read-only in history) -->
+              {% if log.exercises %}
+              <div class="hist-exercise-list">
+                <div class="hist-exercise-header">
+                  <span>Exercises</span>
+                  <span>{{ log.exercises|selectattr('completed')|list|length }}
+                        / {{ log.exercises|length }} completed</span>
+                </div>
+                {% for ex in log.exercises %}
+                <div class="hist-exercise-item {% if ex.completed %}hist-ex-done{% endif %}">
+                  <span class="hist-check">
+                    {% if ex.completed %}✅{% else %}⬜{% endif %}
+                  </span>
+                  <span class="hist-ex-name">{{ ex.exercise_name }}</span>
+                  {% if ex.completed_at %}
+                  <span class="hist-ex-time text-muted">
+                    {{ ex.completed_at.strftime('%H:%M') }}
+                  </span>
+                  {% endif %}
+                </div>
+                {% endfor %}
+              </div>
+              {% endif %}
+
+              <pre class="plan-pre">{{ log.plan_text }}</pre>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function togglePlan(id) {
+  const row = document.getElementById("plan-" + id);
+  const isHidden = row.style.display === "none" || row.style.display === "";
+  row.style.display = isHidden ? "table-row" : "none";
+}
+</script>
+{% endblock %}

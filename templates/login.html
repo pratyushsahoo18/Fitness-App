@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Login – FitPlanner{% endblock %}
+{% block description %}Login to your FitPlanner account and view your workout plans.{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+
+    <div class="auth-header">
+      <div class="auth-icon">🔐</div>
+      <h1>Welcome Back</h1>
+      <p>Login to access your dashboard</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('main.login') }}" class="auth-form">
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com"
+               required autocomplete="email" class="form-control" />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-with-icon">
+          <input type="password" id="password" name="password" placeholder="Your password"
+                 required autocomplete="current-password" class="form-control" />
+          <button type="button" class="toggle-password" onclick="togglePassword('password')">👁</button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full">
+        Login →
+      </button>
+    </form>
+
+    <p class="auth-footer">
+      Don't have an account?
+      <a href="{{ url_for('main.register') }}">Sign up free</a>
+    </p>
+
+  </div>
+</div>
+{% endblock %}

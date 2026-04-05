@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Fitness App{% endblock %}</title>
+  <meta name="description" content="{% block description %}Automated personalised workout planner that emails you daily plans.{% endblock %}" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Our CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+
+  <!-- ── Navigation Bar ─────────────────────────── -->
+  <nav class="navbar">
+    <a href="{{ url_for('main.index') }}" class="nav-brand">
+      <span class="brand-icon">🏋️</span>
+      <span class="brand-text">FitPlanner</span>
+    </a>
+
+    <div class="nav-links">
+      {% if user %}
+        <a href="{{ url_for('main.dashboard') }}" class="nav-link">Dashboard</a>
+        <a href="{{ url_for('main.history') }}"   class="nav-link">History</a>
+        <a href="{{ url_for('main.profile') }}"   class="nav-link">Profile</a>
+        <a href="{{ url_for('main.logout') }}"    class="btn btn-outline btn-sm">Logout</a>
+      {% else %}
+        <a href="{{ url_for('main.login') }}"    class="nav-link">Login</a>
+        <a href="{{ url_for('main.register') }}" class="btn btn-primary btn-sm">Get Started</a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <!-- ── Flash Messages ─────────────────────────── -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">
+            <span>{{ message }}</span>
+            <button class="flash-close" onclick="this.parentElement.remove()">×</button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- ── Main Content ───────────────────────────── -->
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- ── Footer ────────────────────────────────── -->
+  <footer class="footer">
+    <p>Built with ❤️ using Python &amp; Flask &nbsp;|&nbsp; FitPlanner © 2025</p>
+  </footer>
+
+  <!-- Our JavaScript -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

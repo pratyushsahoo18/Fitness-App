@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}FitPlanner – Your Automated Workout Planner{% endblock %}
+
+{% block content %}
+
+<!-- ── Hero Section ─────────────────────────────── -->
+<section class="hero">
+  <div class="hero-bg-orb orb-1"></div>
+  <div class="hero-bg-orb orb-2"></div>
+  <div class="hero-content">
+    <div class="hero-badge">🚀 Fully Automated</div>
+    <h1 class="hero-title">
+      Your Personal<br/>
+      <span class="gradient-text">Fitness Coach</span><br/>
+      In Your Inbox
+    </h1>
+    <p class="hero-subtitle">
+      Get personalised daily workout plans delivered straight to your email —
+      tailored to your goal, experience, and schedule. No guesswork, no gym subscription needed.
+    </p>
+    <div class="hero-actions">
+      {% if user %}
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary btn-lg">Go to Dashboard →</a>
+      {% else %}
+        <a href="{{ url_for('main.register') }}" class="btn btn-primary btn-lg">Start for Free →</a>
+        <a href="{{ url_for('main.login') }}"    class="btn btn-outline btn-lg">Login</a>
+      {% endif %}
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="phone-mockup">
+      <div class="phone-screen">
+        <div class="mock-email">
+          <div class="mock-email-header">
+            <span class="mock-dot green"></span>
+            <span class="mock-subject">💪 Your Monday Workout Plan</span>
+          </div>
+          <div class="mock-exercise"><span>Barbell Squats</span><span class="mock-badge">4×10</span></div>
+          <div class="mock-exercise"><span>Pull-ups</span><span class="mock-badge">4×8</span></div>
+          <div class="mock-exercise"><span>Bench Press</span><span class="mock-badge">4×10</span></div>
+          <div class="mock-exercise"><span>Deadlifts</span><span class="mock-badge">3×6</span></div>
+          <div class="mock-tip">💧 Drink 2–3L of water today!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features Section ─────────────────────────── -->
+<section class="features">
+  <h2 class="section-title">Everything You Need to <span class="gradient-text">Stay Consistent</span></h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🎯</div>
+      <h3>Goal-Based Planning</h3>
+      <p>Choose from weight loss, muscle gain, or general fitness. Plans adapt to your exact goal.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📧</div>
+      <h3>Daily Email Delivery</h3>
+      <p>Receive your workout plan every morning at your chosen time — no app needed.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⭐</div>
+      <h3>Level-Adaptive</h3>
+      <p>Workouts scale to your level — beginner, intermediate, or advanced — automatically.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📅</div>
+      <h3>Flexible Schedule</h3>
+      <p>Train 1 to 7 days a week. The app builds a rotation that fits your lifestyle.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Workout History</h3>
+      <p>View every plan that's been sent to you. Track your progress over time.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔄</div>
+      <h3>Smart Rotation</h3>
+      <p>Push/Pull/Legs, cardio/strength splits — intelligent rotation keeps workouts fresh.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── How It Works ──────────────────────────────── -->
+<section class="how-it-works">
+  <h2 class="section-title">Get Started in <span class="gradient-text">3 Simple Steps</span></h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h3>Create Your Account</h3>
+      <p>Sign up for free in under 30 seconds.</p>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h3>Set Your Profile</h3>
+      <p>Tell us your goal, level, and schedule.</p>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h3>Check Your Inbox</h3>
+      <p>Get personalised plans every single day.</p>
+    </div>
+  </div>
+  {% if not user %}
+  <div style="text-align:center; margin-top:3rem;">
+    <a href="{{ url_for('main.register') }}" class="btn btn-primary btn-lg">Create Free Account →</a>
+  </div>
+  {% endif %}
+</section>
+
+{% endblock %}

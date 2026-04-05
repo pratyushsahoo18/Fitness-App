@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Create Account – FitPlanner{% endblock %}
+{% block description %}Sign up for your free FitPlanner account and start receiving daily workout plans.{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+
+    <!-- Icon & Heading -->
+    <div class="auth-header">
+      <div class="auth-icon">🏋️</div>
+      <h1>Create Account</h1>
+      <p>Join thousands building their best body</p>
+    </div>
+
+    <!-- Registration Form -->
+    <form method="POST" action="{{ url_for('main.register') }}" class="auth-form" id="registerForm">
+
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <input type="text" id="name" name="name" placeholder="e.g. Alex Johnson"
+               required autocomplete="name" class="form-control" />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com"
+               required autocomplete="email" class="form-control" />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-with-icon">
+          <input type="password" id="password" name="password" placeholder="Min. 6 characters"
+                 required autocomplete="new-password" class="form-control" />
+          <button type="button" class="toggle-password" onclick="togglePassword('password')">👁</button>
+        </div>
+        <div class="password-strength" id="strengthBar"></div>
+        <small class="form-hint" id="strengthText"></small>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full" id="registerBtn">
+        <span>Create Account →</span>
+      </button>
+    </form>
+
+    <p class="auth-footer">
+      Already have an account?
+      <a href="{{ url_for('main.login') }}">Login here</a>
+    </p>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Password strength indicator
+  document.getElementById("password").addEventListener("input", function () {
+    const val = this.value;
+    const bar = document.getElementById("strengthBar");
+    const txt = document.getElementById("strengthText");
+    let strength = 0;
+    if (val.length >= 6)  strength++;
+    if (val.length >= 10) strength++;
+    if (/[A-Z]/.test(val)) strength++;
+    if (/[0-9]/.test(val)) strength++;
+    if (/[^A-Za-z0-9]/.test(val)) strength++;
+
+    const labels = ["", "Weak", "Fair", "Good", "Strong", "Very Strong"];
+    const colors = ["", "#ef4444", "#f97316", "#eab308", "#22c55e", "#10b981"];
+    bar.style.width    = (strength * 20) + "%";
+    bar.style.background = colors[strength];
+    txt.textContent    = strength ? labels[strength] : "";
+    txt.style.color    = colors[strength];
+  });
+</script>
+{% endblock %}

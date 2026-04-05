@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Fitness Profile – FitPlanner{% endblock %}
+{% block description %}Set up your fitness profile to receive personalised daily workout plans.{% endblock %}
+
+{% block content %}
+<div class="page-container">
+
+  <div class="page-header">
+    <h1>⚙️ Your Fitness Profile</h1>
+    <p>Tell us about yourself so we can build the perfect plan for you.</p>
+  </div>
+
+  <div class="profile-card">
+    <form method="POST" action="{{ url_for('main.profile') }}" class="profile-form">
+
+      <!-- Row 1: Goal -->
+      <div class="form-section">
+        <h2 class="form-section-title">🎯 What's Your Goal?</h2>
+        <div class="goal-grid">
+
+          <label class="goal-option {% if user.fitness_goal == 'weight_loss' %}selected{% endif %}">
+            <input type="radio" name="fitness_goal" value="weight_loss"
+                   {% if user.fitness_goal == 'weight_loss' %}checked{% endif %} />
+            <span class="goal-icon">🔥</span>
+            <span class="goal-name">Weight Loss</span>
+            <span class="goal-desc">Burn fat with cardio & strength combos</span>
+          </label>
+
+          <label class="goal-option {% if user.fitness_goal == 'muscle_gain' %}selected{% endif %}">
+            <input type="radio" name="fitness_goal" value="muscle_gain"
+                   {% if user.fitness_goal == 'muscle_gain' %}checked{% endif %} />
+            <span class="goal-icon">💪</span>
+            <span class="goal-name">Muscle Gain</span>
+            <span class="goal-desc">Build strength with Push/Pull/Legs splits</span>
+          </label>
+
+          <label class="goal-option {% if user.fitness_goal == 'general_fitness' %}selected{% endif %}">
+            <input type="radio" name="fitness_goal" value="general_fitness"
+                   {% if user.fitness_goal == 'general_fitness' %}checked{% endif %} />
+            <span class="goal-icon">⚡</span>
+            <span class="goal-name">General Fitness</span>
+            <span class="goal-desc">Stay healthy with full-body workouts</span>
+          </label>
+
+        </div>
+      </div>
+
+      <!-- Row 2: Experience Level -->
+      <div class="form-section">
+        <h2 class="form-section-title">⭐ Experience Level</h2>
+        <div class="level-grid">
+
+          <label class="level-option {% if user.experience_level == 'beginner' %}selected{% endif %}">
+            <input type="radio" name="experience_level" value="beginner"
+                   {% if user.experience_level == 'beginner' %}checked{% endif %} />
+            <span class="level-badge beginner">Beginner</span>
+            <span class="level-desc">0 – 6 months training</span>
+          </label>
+
+          <label class="level-option {% if user.experience_level == 'intermediate' %}selected{% endif %}">
+            <input type="radio" name="experience_level" value="intermediate"
+                   {% if user.experience_level == 'intermediate' %}checked{% endif %} />
+            <span class="level-badge intermediate">Intermediate</span>
+            <span class="level-desc">6 months – 2 years</span>
+          </label>
+
+          <label class="level-option {% if user.experience_level == 'advanced' %}selected{% endif %}">
+            <input type="radio" name="experience_level" value="advanced"
+                   {% if user.experience_level == 'advanced' %}checked{% endif %} />
+            <span class="level-badge advanced">Advanced</span>
+            <span class="level-desc">2+ years of consistent training</span>
+          </label>
+
+        </div>
+      </div>
+
+      <!-- Row 3: Schedule & Body Stats -->
+      <div class="form-section">
+        <h2 class="form-section-title">📅 Schedule & Stats</h2>
+        <div class="stats-grid">
+
+          <div class="form-group">
+            <label for="days_per_week">Training Days / Week</label>
+            <select id="days_per_week" name="days_per_week" class="form-control">
+              {% for d in range(1, 8) %}
+                <option value="{{ d }}" {% if user.days_per_week == d %}selected{% endif %}>
+                  {{ d }} day{{ 's' if d > 1 }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="email_time">Daily Email Time (UTC)</label>
+            <input type="time" id="email_time" name="email_time"
+                   value="{{ user.email_time or '07:00' }}" class="form-control" />
+            <small class="form-hint">We'll send your plan at this time every day.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="age">Age (years)</label>
+            <input type="number" id="age" name="age" min="10" max="100"
+                   value="{{ user.age or '' }}" placeholder="e.g. 25" class="form-control" />
+          </div>
+
+          <div class="form-group">
+            <label for="weight_kg">Weight (kg)</label>
+            <input type="number" id="weight_kg" name="weight_kg" step="0.1" min="30" max="300"
+                   value="{{ user.weight_kg or '' }}" placeholder="e.g. 70" class="form-control" />
+          </div>
+
+          <div class="form-group">
+            <label for="height_cm">Height (cm)</label>
+            <input type="number" id="height_cm" name="height_cm" step="0.1" min="100" max="250"
+                   value="{{ user.height_cm or '' }}" placeholder="e.g. 175" class="form-control" />
+          </div>
+
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full">
+        💾 Save Profile &amp; Activate Daily Emails
+      </button>
+
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Highlight goal cards when radio is clicked
+  document.querySelectorAll('.goal-option input').forEach(radio => {
+    radio.addEventListener('change', () => {
+      document.querySelectorAll('.goal-option').forEach(el => el.classList.remove('selected'));
+      radio.closest('.goal-option').classList.add('selected');
+    });
+  });
+  // Highlight level cards
+  document.querySelectorAll('.level-option input').forEach(radio => {
+    radio.addEventListener('change', () => {
+      document.querySelectorAll('.level-option').forEach(el => el.classList.remove('selected'));
+      radio.closest('.level-option').classList.add('selected');
+    });
+  });
+</script>
+{% endblock %}

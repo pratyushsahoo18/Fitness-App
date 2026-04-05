@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – FitPlanner{% endblock %}
+{% block description %}View your today's workout plan and track your exercise progress.{% endblock %}
+
+{% block content %}
+<div class="page-container">
+
+  <!-- ── Welcome Banner ───────────────────────────── -->
+  <div class="dashboard-welcome">
+    <div>
+      <h1>Hey, {{ user.name }}! 👋</h1>
+      <p class="text-muted">{{ today }}</p>
+    </div>
+    <div class="dashboard-actions">
+      <button class="btn btn-outline" id="sendNowBtn" onclick="sendNow()">
+        <span id="sendBtnText">📧 Send Email Now</span>
+      </button>
+      <a href="{{ url_for('main.profile') }}" class="btn btn-ghost">⚙️ Edit Profile</a>
+    </div>
+  </div>
+
+  {% if not user.fitness_goal %}
+  <!-- Profile not set up yet -->
+  <div class="setup-banner">
+    <div class="setup-icon">⚠️</div>
+    <div>
+      <h3>Complete Your Profile First!</h3>
+      <p>You need to set your fitness goal and schedule before we can generate your plan.</p>
+    </div>
+    <a href="{{ url_for('main.profile') }}" class="btn btn-primary">Set Up Profile →</a>
+  </div>
+
+  {% else %}
+
+  <!-- ── Stats Row ─────────────────────────────────── -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon">🎯</div>
+      <div class="stat-info">
+        <span class="stat-value">{{ user.fitness_goal.replace('_',' ').title() }}</span>
+        <span class="stat-label">Your Goal</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⭐</div>
+      <div class="stat-info">
+        <span class="stat-value">{{ user.experience_level.title() }}</span>
+        <span class="stat-label">Experience</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📅</div>
+      <div class="stat-info">
+        <span class="stat-value">{{ user.days_per_week }}×/week</span>
+        <span class="stat-label">Training Days</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-info">
+        <span class="stat-value">{{ logs|length }}</span>
+        <span class="stat-label">Workouts Done</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Today's Workout Plan ──────────────────────── -->
+  {% if plan %}
+  <div class="plan-card" id="planCard">
+    <div class="plan-header">
+      <div>
+        <h2>💪 Today's Workout</h2>
+        <div class="plan-badges">
+          <span class="badge badge-purple">{{ plan.goal_label }}</span>
+          <span class="badge badge-pink">{{ plan.day_type }}</span>
+          <span class="badge badge-cyan">{{ plan.experience }}</span>
+          <span class="badge badge-gray">Day {{ day_index + 1 }}</span>
+        </div>
+      </div>
+
+      <!-- Completion Counter -->
+      <div class="completion-counter">
+        <span id="doneCount">{{ progress_map.values()|selectattr('completed')|list|length }}</span>
+        <span class="completion-sep">/</span>
+        <span>{{ plan.exercises|length }}</span>
+        <span class="completion-label">done</span>
+      </div>
+    </div>
+
+    <!-- ── Progress Bar ──────────────────────────── -->
+    {% set done_count = progress_map.values()|selectattr('completed')|list|length %}
+    {% set total_count = plan.exercises|length %}
+    {% set pct = ((done_count / total_count) * 100)|int if total_count > 0 else 0 %}
+
+    <div class="progress-section">
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progressFill"
+             style="width: {{ pct }}%"
+             data-pct="{{ pct }}"></div>
+      </div>
+      <span class="progress-pct" id="progressPct">{{ pct }}%</span>
+    </div>
+
+    {% if pct == 100 %}
+    <div class="completed-banner" id="completedBanner">
+      🎉 Workout Complete! Amazing work today!
+    </div>
+    {% else %}
+    <div class="completed-banner" id="completedBanner" style="display:none;">
+      🎉 Workout Complete! Amazing work today!
+    </div>
+    {% endif %}
+
+    <!-- ── Exercise Table with Checkboxes ───────── -->
+    <div class="table-wrapper">
+      <table class="exercise-table">
+        <thead>
+          <tr>
+            <th style="width:44px;"></th>
+            <th>#</th>
+            <th>Exercise</th>
+            <th>Sets</th>
+            <th>Reps</th>
+            <th>Duration</th>
+            <th>Rest</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ex in plan.exercises %}
+          {% set prog = progress_map.get(ex.name) %}
+          {% set is_done = prog.completed if prog else false %}
+          <tr class="exercise-row {% if is_done %}exercise-done{% endif %}"
+              id="row-{{ loop.index }}"
+              style="animation-delay: {{ loop.index0 * 0.07 }}s">
+
+            <!-- Checkbox cell -->
+            <td class="check-cell">
+              <label class="check-wrap" title="Mark as complete">
+                <input
+                  type="checkbox"
+                  class="ex-checkbox"
+                  data-log-id="{{ today_log.id }}"
+                  data-exercise="{{ ex.name }}"
+                  {% if is_done %}checked{% endif %}
+                  onchange="toggleExercise(this)"
+                />
+                <span class="checkmark">
+                  <svg viewBox="0 0 12 10" fill="none">
+                    <path d="M1 5l3.5 3.5L11 1" stroke="currentColor" stroke-width="2"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+              </label>
+            </td>
+
+            <td class="ex-num">{{ loop.index }}</td>
+            <td class="ex-name">{{ ex.name }}</td>
+            <td>{{ ex.sets if ex.sets else '—' }}</td>
+            <td>{{ ex.reps if ex.reps else '—' }}</td>
+            <td>{{ ex.duration if ex.duration else '—' }}</td>
+            <td><span class="rest-badge">{{ ex.rest if ex.rest else '—' }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Tip -->
+    <div class="tip-bar">
+      <span class="tip-icon">💡</span>
+      <span>{{ plan.tip }}</span>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── Recent History ────────────────────────────── -->
+  {% if logs %}
+  <div class="history-preview">
+    <div class="section-header">
+      <h2>🕐 Recent Workouts</h2>
+      <a href="{{ url_for('main.history') }}" class="btn btn-ghost btn-sm">View All →</a>
+    </div>
+    <div class="log-list">
+      {% for log in logs[:5] %}
+      <div class="log-item">
+        <div class="log-day">{{ log.day_name }}</div>
+        <div class="log-date">{{ log.sent_at.strftime('%d %b %Y') }}</div>
+
+        <!-- Mini inline progress bar -->
+        <div class="log-progress">
+          <div class="log-progress-track">
+            <div class="log-progress-fill"
+                 style="width:{{ log.completion_pct }}%;
+                        background: {{ 'var(--green)' if log.completion_pct == 100 else 'var(--purple)' }}">
+            </div>
+          </div>
+          <span class="log-pct">{{ log.completion_pct }}%</span>
+        </div>
+
+        <div>
+          {% if log.email_sent %}
+            <span class="badge badge-green">✅ Emailed</span>
+          {% elif log.completion_pct == 100 %}
+            <span class="badge badge-green">✅ Done</span>
+          {% elif log.completion_pct > 0 %}
+            <span class="badge badge-yellow">🔄 Partial</span>
+          {% else %}
+            <span class="badge badge-gray">— Pending</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% endif %}{# end if user.fitness_goal #}
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── Toggle a single exercise ──────────────────────────
+async function toggleExercise(checkbox) {
+  const logId    = checkbox.dataset.logId;
+  const exName   = checkbox.dataset.exercise;
+  const row      = checkbox.closest("tr");
+
+  // Optimistic UI – flip row style instantly
+  row.classList.toggle("exercise-done", checkbox.checked);
+
+  try {
+    const res  = await fetch("/api/toggle-exercise", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ log_id: parseInt(logId), exercise_name: exName }),
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      updateProgress(data.done, data.total, data.pct);
+    } else {
+      // Roll back UI on error
+      checkbox.checked = !checkbox.checked;
+      row.classList.toggle("exercise-done", checkbox.checked);
+      showToast("Could not save – please try again.", "error");
+    }
+  } catch (e) {
+    checkbox.checked = !checkbox.checked;
+    row.classList.toggle("exercise-done", checkbox.checked);
+    showToast("Network error.", "error");
+  }
+}
+
+// ── Update progress bar + counter ────────────────────
+function updateProgress(done, total, pct) {
+  const fill    = document.getElementById("progressFill");
+  const pctEl   = document.getElementById("progressPct");
+  const doneEl  = document.getElementById("doneCount");
+  const banner  = document.getElementById("completedBanner");
+
+  if (fill)   fill.style.width = pct + "%";
+  if (pctEl)  pctEl.textContent = pct + "%";
+  if (doneEl) doneEl.textContent = done;
+
+  // Color shift: purple → green when 100%
+  if (fill) {
+    fill.style.background = pct === 100
+      ? "linear-gradient(90deg, #22c55e, #10b981)"
+      : "linear-gradient(90deg, var(--purple), var(--pink))";
+  }
+
+  // Show congratulations banner
+  if (banner) {
+    if (pct === 100) {
+      banner.style.display = "flex";
+      banner.classList.add("banner-pop");
+    } else {
+      banner.style.display = "none";
+      banner.classList.remove("banner-pop");
+    }
+  }
+}
+
+// ── Send email now ────────────────────────────────────
+async function sendNow() {
+  const btn  = document.getElementById("sendNowBtn");
+  const text = document.getElementById("sendBtnText");
+  btn.disabled = true;
+  text.textContent = "⏳ Sending...";
+  try {
+    const res  = await fetch("/api/send-now", { method: "POST" });
+    const data = await res.json();
+    showToast(data.success ? "✅ " + data.message : "❌ " + data.message,
+              data.success ? "success" : "error");
+  } catch (e) {
+    showToast("❌ Network error.", "error");
+  }
+  text.textContent = "📧 Send Email Now";
+  btn.disabled = false;
+}
+
+// ── Toast notification ────────────────────────────────
+function showToast(msg, type) {
+  const toast = document.getElementById("toast");
+  toast.textContent = msg;
+  toast.className   = `toast toast-${type} show`;
+  setTimeout(() => toast.classList.remove("show"), 3000);
+}
+</script>
+{% endblock %}
