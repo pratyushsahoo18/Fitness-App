@@ -94,7 +94,17 @@ python app.py
 
 ## 📸 Screenshots
 
-(Add screenshots here later)
+### 🏠 Home Interface
+![Home](screenshots/interface.png)
+
+### 📊 Dashboard
+![Dashboard](screenshots/dashboard.png)
+
+### 🧠 Workout Progress
+![Workout](screenshots/workout-progress.png)
+
+### 👤 Profile Page
+![Profile](screenshots/profile.png)
 
 ---
 
