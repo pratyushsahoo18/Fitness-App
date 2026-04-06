@@ -98,7 +98,7 @@ python app.py
 ![Home](screenshots/interface.png)
 
 ### 📊 Dashboard
-![Dashboard](screenshots/dashboard.png)
+![Dashboard](screenshots/Dashboard.png)
 
 ### 🧠 Workout Progress
 ![Workout](screenshots/workout-progress.png)
